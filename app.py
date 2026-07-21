@@ -4,192 +4,123 @@ import joblib
 import pandas as pd
 
 
-# ==============================
-# Load Machine Learning Model
-# ==============================
+# ==========================
+# Load Model
+# ==========================
 
-MODEL_PATH = "Sales_Prediction_Model.pkl"
+model = joblib.load("Sales_Prediction_Model.pkl")
 
+
+# Get original training columns
 try:
-    model = joblib.load(MODEL_PATH)
-except Exception as e:
-    raise Exception(
-        f"Model file not found or cannot be loaded.\n"
-        f"Make sure '{MODEL_PATH}' is in the same folder.\n\nError: {e}"
-    )
+    FEATURES = list(model.feature_names_in_)
+except:
+    FEATURES = ["TV", "Radio", "Newspaper"]
 
 
-# ==============================
+print("Model expects:", FEATURES)
+
+
+
+# ==========================
 # Prediction Function
-# ==============================
+# ==========================
 
 def predict_sales(tv, radio, newspaper):
 
     try:
+
+        values = {
+            "TV": tv,
+            "Radio": radio,
+            "Newspaper": newspaper
+        }
+
+
+        # Arrange columns exactly like training
         input_data = pd.DataFrame(
-            [[tv, radio, newspaper]],
-            columns=["TV", "Radio", "Newspaper"]
+            [[values[col] for col in FEATURES]],
+            columns=FEATURES
         )
 
-        result = model.predict(input_data)[0]
 
-        return f"📈 Predicted Sales: {result:.2f} units"
+        prediction = model.predict(input_data)[0]
+
+
+        return f"📈 Predicted Sales: {prediction:.2f} units"
+
 
     except Exception as e:
-        return f"❌ Error: {str(e)}"
+
+        return f"Error: {str(e)}"
 
 
 
-# ==============================
-# Custom CSS
-# ==============================
+# ==========================
+# Gradio Interface
+# ==========================
 
-css = """
-
-body{
-    background:#eef2f7;
-}
-
-.gradio-container{
-    max-width:1100px !important;
-    margin:auto;
-}
+with gr.Blocks(title="Sales Prediction") as app:
 
 
-.box{
-    background:white;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0px 5px 20px #cccccc;
-}
+    gr.Markdown(
+        """
+        # 📊 Sales Prediction using Decision Tree
+
+        Enter advertisement budget values.
+        """
+    )
 
 
-footer{
-    display:none;
-}
+    with gr.Row():
 
-"""
+        with gr.Column():
 
-
-# ==============================
-# Gradio UI
-# ==============================
-
-with gr.Blocks(
-    css=css,
-    title="Sales Prediction App"
-) as app:
+            tv = gr.Number(
+                label="TV Advertisement Budget",
+                value=100
+            )
 
 
-    with gr.Column(elem_classes="box"):
-
-        gr.Markdown(
-            """
-            # 📊 Sales Prediction using Machine Learning
-
-            Predict product sales using advertisement budgets.
-            """
-        )
+            radio = gr.Number(
+                label="Radio Advertisement Budget",
+                value=25
+            )
 
 
-        gr.Markdown("---")
+            newspaper = gr.Number(
+                label="Newspaper Advertisement Budget",
+                value=20
+            )
 
 
-        with gr.Row():
+            button = gr.Button(
+                "Predict Sales"
+            )
 
 
-            # Input Section
+        with gr.Column():
 
-            with gr.Column():
-
-                gr.Markdown(
-                    "## 📥 Advertisement Budget"
-                )
+            output = gr.Textbox(
+                label="Prediction Result"
+            )
 
 
-                tv = gr.Number(
-                    label="TV Advertisement Budget",
-                    value=100
-                )
-
-
-                radio = gr.Number(
-                    label="Radio Advertisement Budget",
-                    value=25
-                )
-
-
-                newspaper = gr.Number(
-                    label="Newspaper Advertisement Budget",
-                    value=20
-                )
-
-
-                predict = gr.Button(
-                    "🚀 Predict Sales"
-                )
-
-
-                output = gr.Textbox(
-                    label="Prediction"
-                )
+    button.click(
+        predict_sales,
+        inputs=[
+            tv,
+            radio,
+            newspaper
+        ],
+        outputs=output
+    )
 
 
 
-            # Information Section
-
-            with gr.Column():
-
-                gr.Markdown(
-                    """
-                    ## 👨‍💻 Developer
-
-                    **Name:** Manik Jindal
-
-                    **College:**  
-                    Panipat Institute of Engineering and Technology
-
-
-                    ## 🛠 Technology Used
-
-                    - Python
-                    - Pandas
-                    - Scikit-Learn
-                    - Decision Tree Regression
-                    - Joblib
-                    - Gradio
-
-
-                    ## 📌 About Project
-
-                    This application predicts product sales
-                    based on advertisement spending on:
-
-                    📺 TV  
-                    📻 Radio  
-                    📰 Newspaper
-
-                    The prediction is generated using
-                    a trained Decision Tree Regression model.
-                    """
-                )
-
-
-        predict.click(
-            fn=predict_sales,
-            inputs=[
-                tv,
-                radio,
-                newspaper
-            ],
-            outputs=output
-        )
-
-
-
-# ==============================
-# Run Application
-# ==============================
+# ==========================
+# Run App
+# ==========================
 
 if __name__ == "__main__":
 
