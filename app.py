@@ -78,7 +78,7 @@ custom_css = """
 
 .main-box{
 
-    background:white;
+    background:black;
     border-radius:20px;
     padding:30px;
     box-shadow:0px 8px 25px rgba(0,0,0,0.15);
