@@ -88,7 +88,7 @@ custom_css = """
 
 .main-box *{
 
-    color:black !important;
+    color:white !important;
 
 }
 
